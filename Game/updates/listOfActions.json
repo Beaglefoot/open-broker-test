@@ -1,0 +1,60 @@
+[
+   [
+      { "type": "add player", "playerId": 12, "class": "alien", "hp": 100, "weapon": "laser gun", "x": 3, "y": 3 },
+      { "type": "add player", "playerId": 10, "class": "human", "hp": 100, "weapon": "knife", "x": 0, "y": 0 },
+      { "type": "add player", "playerId": 34, "class": "human", "hp": 100, "weapon": "shotgun", "x": 6, "y": 6 },
+      { "type": "add player", "playerId": 0, "class": "alien", "hp": 80, "weapon": "laser gun", "x": 5, "y": 4 }
+   ],
+   [
+      { "type": "move", "playerId": 0, "x": 6, "y": 5 },
+      { "type": "move", "playerId": 34, "x": 5, "y": 6 },
+      { "type": "change weapon", "playerId": 10, "weapon": "baseball bat" },
+      { "type": "move", "playerId": 12, "x": 2, "y": 2 }
+   ],
+   [
+      { "type": "attack", "playerId": 0, "targetId": 34 },
+      { "type": "attack", "playerId": 34, "targetId": 0 },
+      { "type": "move", "playerId": 12, "x": 2, "y": 1 },
+      { "type": "move", "playerId": 10, "x": 1, "y": 1 }
+   ],
+   [
+      { "type": "attack", "playerId": 34, "targetId": 0 },
+      { "type": "attack", "playerId": 0, "targetId": 34 },
+      { "type": "attack", "playerId": 10, "targetId": 12 },
+      { "type": "attack", "playerId": 12, "targetId": 10 }
+   ],
+   [
+      { "type": "attack", "playerId": 34, "targetId": 0 },
+      { "type": "attack", "playerId": 0, "targetId": 34 },
+      { "type": "move", "playerId": 10, "x": 0, "y": 2 },
+      { "type": "attack", "playerId": 12, "targetId": 10 }
+   ],
+   [
+      { "type": "move", "playerId": 10, "x": 0, "y": 3 },
+      { "type": "move", "playerId": 34, "x": 4, "y": 6 },
+      { "type": "move", "playerId": 12, "x": 1, "y": 2 }
+   ],
+   [
+      { "type": "move", "playerId": 10, "x": 0, "y": 4 },
+      { "type": "move", "playerId": 34, "x": 3, "y": 6 },
+      { "type": "move", "playerId": 12, "x": 1, "y": 3 }
+   ],
+   [
+      { "type": "move", "playerId": 10, "x": 1, "y": 5 },
+      { "type": "move", "playerId": 34, "x": 2, "y": 5 },
+      { "type": "move", "playerId": 12, "x": 1, "y": 4 }
+   ],
+   [
+      { "type": "attack", "playerId": 34, "targetId": 12 },
+      { "type": "attack", "playerId": 12, "targetId": 34 },
+      { "type": "change weapon", "playerId": 10, "weapon": "shotgun" }
+   ],
+   [
+      { "type": "attack", "playerId": 10, "targetId": 12 },
+      { "type": "attack", "playerId": 12, "targetId": 10 }
+   ],
+   [
+      { "type": "attack", "playerId": 10, "targetId": 12 },
+      { "type": "attack", "playerId": 12, "targetId": 10 }
+   ]
+]
