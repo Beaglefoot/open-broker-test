@@ -1,0 +1,19 @@
+{
+  "world": {
+    "playerList": []
+  },
+  "available": {
+    "classes": [
+      { "name": "human" },
+      { "name": "alien" }
+    ],
+    "weapons": [
+      { "name": "baseball bat", "damage": 10 },
+      { "name": "knife", "damage": 5 },
+      { "name": "shotgun", "damage": 30 },
+      { "name": "laser gun", "damage": 35 }
+    ]
+  },
+  "lastAction": {},
+  "winner": -1
+}

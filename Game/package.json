@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "exec": "gulp babel && node main_transpiled.js"
+  },
+  "dependencies": {
+    "redux": "^3.6.0"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-inline-imports-commonjs": "^1.2.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "dumper": "^1.0.12",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-rename": "^1.2.2",
+    "stream-combiner2": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=6.10.2"
+  }
+}
