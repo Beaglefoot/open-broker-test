@@ -218,8 +218,9 @@ const store = createStore(reducer, defaultState);
 
 
 
-const logger = (state, action) => {
+const logger = state => {
   const playerList = state.getIn(['world', 'playerList']);
+  const action = state.get('lastAction').toObject();
   const {
     type,
     playerId,
@@ -229,11 +230,10 @@ const logger = (state, action) => {
     targetId,
     class: pClass,
     winner
-  } = action.toObject();
+  } = action;
 
 
   let { weapon } = action;
-  console.log(playerList.toArray(), playerId);
 
   switch(type) {
     case 'attack':
@@ -282,11 +282,8 @@ const colorizeMsg = msg => {
 // Subscribe to state changes
 const unsubscribe = store.subscribe(() => {
   const state = fromJS(store.getState());
-  // TODO: get rid of lastAction.
-  // This can be obtained directly on state
-  const lastAction = state.get('lastAction');
 
-  console.log(colorizeMsg(logger(state, lastAction)));
+  console.log(colorizeMsg(logger(state)));
 });
 
 
