@@ -3,6 +3,7 @@
     "exec": "node ./node_modules/gulp/bin/gulp.js babel && node main_transpiled.js"
   },
   "dependencies": {
+    "immutable": "^3.8.1",
     "redux": "^3.6.0"
   },
   "devDependencies": {

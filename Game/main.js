@@ -3,13 +3,14 @@
 /* eslint indent: off, no-case-declarations: off */
 
 // Attach external modules
+import { List, Map, fromJS } from 'immutable';
 import { createStore } from 'redux';
 import { dumper } from 'dumper';
 
 import defaultState from './defaultState';
 import turns from './updates/listOfActions';
 
-const turnDelay = 1000;
+const turnDelay = 200;
 
 
 // Helper functions
@@ -218,7 +219,7 @@ const store = createStore(reducer, defaultState);
 
 
 const logger = (state, action) => {
-  const { world: { playerList }} = state;
+  const playerList = state.getIn(['world', 'playerList']);
   const {
     type,
     playerId,
@@ -228,15 +229,19 @@ const logger = (state, action) => {
     targetId,
     class: pClass,
     winner
-  } = action;
+  } = action.toObject();
+
 
   let { weapon } = action;
+  console.log(playerList.toArray(), playerId);
 
   switch(type) {
     case 'attack':
-      weapon = playerList.find(p => p.playerId === playerId).weapon;
+      weapon = playerList
+        .find(p => p.get('playerId') === playerId)
+        .get('weapon');
 
-      if (isAlive(state, targetId)) {
+      if (isAlive(state.toJS(), targetId)) {
         return `Player ${playerId} attacked player ${targetId} with ${weapon}`;
       }
       else {
@@ -276,8 +281,10 @@ const colorizeMsg = msg => {
 
 // Subscribe to state changes
 const unsubscribe = store.subscribe(() => {
-  const state = store.getState();
-  const { world: { playerList }, winner, lastAction } = state;
+  const state = fromJS(store.getState());
+  // TODO: get rid of lastAction.
+  // This can be obtained directly on state
+  const lastAction = state.get('lastAction');
 
   console.log(colorizeMsg(logger(state, lastAction)));
 });
