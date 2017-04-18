@@ -93,28 +93,29 @@ const takeDamage = (playerList, attackerId, targetId, weapons) => {
 
 /* eslint no-unused-vars: off */
 // Validation functions
-const isAlive = (state, playerId) => {
-  const { world: { playerList }} = state;
-  const { hp } = playerList.find(p => p.playerId === playerId) || { hp: 0 };
-
-  return hp > 0;
-};
+const isAlive = (state, playerId) => (
+  // const { world: { playerList }} = state;
+  // const { hp } = playerList.find(p => p.playerId === playerId) || { hp: 0 };
+  Map.isMap(state) && state.getIn(['world', 'playerList'])
+    .find(p => p.get('playerId') === playerId)
+    .get('hp') > 0
+);
 
 const isLogged = (state, playerId) => (
-  state.world.playerList
-    .map(p => p.playerId)
+  state.getIn(['world', 'playerList'])
+    .map(p => p.get('playerId'))
     .includes(playerId)
 );
 
 const isValidClass = (state, pClass) => (
-  state.available.classes
-    .map(c => c.name)
+  state.getIn(['available', 'classes'])
+    .map(c => c.get('name'))
     .includes(pClass)
 );
 
 const isValidWeapon = (state, weapon) => (
-  state.available.weapons
-    .map(w => w.name)
+  state.getIn(['available', 'weapons'])
+    .map(w => w.get('name'))
     .includes(weapon)
 );
 
@@ -162,7 +163,7 @@ const isValidAction = (state, action) => {
 // Single Reducer
 const reducer = (state, action) => {
   if (!action) return state;
-  if (!isValidAction(state, action)) return state;
+  if (!isValidAction(fromJS(state), action)) return state;
 
   const { world: { playerList }, available: { weapons }} = state;
   const {
@@ -211,10 +212,6 @@ const reducer = (state, action) => {
       return state;
   }
 };
-
-
-
-const store = createStore(reducer, defaultState);
 
 
 
@@ -279,15 +276,6 @@ const colorizeMsg = msg => {
 
 
 
-// Subscribe to state changes
-const unsubscribe = store.subscribe(() => {
-  const state = fromJS(store.getState());
-
-  console.log(colorizeMsg(logger(state)));
-});
-
-
-
 // Emitter helper functions
 const getAlivePlayers = playerList => (
   playerList.filter(p => p.get('hp') > 0)
@@ -333,5 +321,15 @@ const actionEmitter = (store, turns) => {
     .then(() => console.log('No Actions Left'))
     .catch(() => console.log('\n<<< The promise chain was interrupted >>>'));
 };
+
+
+
+const store = createStore(reducer, defaultState);
+// Subscribe to state changes
+const unsubscribe = store.subscribe(() => {
+  const state = fromJS(store.getState());
+
+  console.log(colorizeMsg(logger(state)));
+});
 
 actionEmitter(store, turns);
