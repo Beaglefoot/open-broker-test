@@ -290,11 +290,11 @@ const unsubscribe = store.subscribe(() => {
 
 // Emitter helper functions
 const getAlivePlayers = playerList => (
-  playerList.filter(p => p.hp > 0)
+  playerList.filter(p => p.get('hp') > 0)
 );
 
 const getDeadPlayers = playerList => (
-  playerList.filter(p => p.hp <= 0)
+  playerList.filter(p => p.get('hp') <= 0)
 );
 
 // Run game scenario by building a chain of promises from actions.
@@ -310,16 +310,17 @@ const actionEmitter = (store, turns) => {
           actions.some(action => {
             store.dispatch(action);
 
-            const { playerList } = store.getState().world;
+            const state = fromJS(store.getState());
+            const playerList = state.getIn(['world', 'playerList']);
             const alivePlayers = getAlivePlayers(playerList);
 
             // Stop emmiting actions if there is only one player left
             if (
-              alivePlayers.length === 1
-              && getDeadPlayers(playerList).length >= 1
+              alivePlayers.size === 1
+              && getDeadPlayers(playerList).size >= 1
             ) {
               // Define winner
-              store.dispatch({ type: 'game over', winner: alivePlayers[0].playerId });
+              store.dispatch({ type: 'game over', winner: alivePlayers.getIn([0, 'playerId']) });
               reject();
               return true;
             }
