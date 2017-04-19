@@ -24,68 +24,35 @@ const refineAction = action => (
     }, {})
 );
 
-// Get new state object with provided changes on state.world object
-const changeWorld = (state, changeObject) => {
-  const { world } = state;
-
-  return {
-    ...state,
-    world: {
-      ...world,
-      ...changeObject
-    }
-  };
-};
-
-// Get new playerList object without given player
-const removePlayer = (playerList, playerId) => (
-  playerList.filter(p => p.playerId !== playerId)
-);
-
-// Get new single player object with provided changes
-const getModifiedPlayer = (playerList, playerId, { ...changes }) => (
-  {
-    ...playerList.find(p => p.playerId === playerId),
-    ...changes
-  }
-);
-
-// Get new playerList object with updates for a given player
-const updatePlayer = (playerList, updatedPlayer) => (
-  removePlayer(
-    playerList,
-    updatedPlayer.playerId
-  ).concat(updatedPlayer)
-);
-
 // Get new playerList object with moved player
 const movePlayer = (playerList, playerId, x, y) => (
-  updatePlayer(
-    playerList,
-    getModifiedPlayer(playerList, playerId, { x, y })
+  playerList.mergeIn(
+    [playerList.findIndex(p => p.get('playerId') === playerId)],
+    { x, y }
   )
 );
 
 // Get new playerList object with weapon change for a given player
 const changeWeapon = (playerList, playerId, weapon) => (
-  updatePlayer(
-    playerList,
-    getModifiedPlayer(playerList, playerId, { weapon })
+  playerList.mergeIn(
+    [playerList.findIndex(p => p.get('playerId') === playerId)],
+    { weapon }
   )
 );
 
 // Get new playerList object with lowered hp for a given player
 const takeDamage = (playerList, attackerId, targetId, weapons) => {
-  const { hp } = playerList.find(p => p.playerId === targetId);
+  const hp = playerList.find(p => p.get('playerId') === targetId)
+    .get('hp');
 
-  const { weapon } = playerList
-    .find(p => p.playerId === attackerId);
+  const weapon = playerList.find(p => p.get('playerId') === attackerId)
+    .get('weapon');
 
-  const { damage } = weapons.find(({ name }) => name === weapon);
+  const damage = weapons.find(w => w.get('name') === weapon).get('damage');
 
-  return updatePlayer(
-    playerList,
-    getModifiedPlayer(playerList, targetId, { hp: hp - damage })
+  return playerList.mergeIn(
+    [playerList.findIndex(t => t.get('playerId') === targetId)],
+    { hp: hp - damage }
   );
 };
 
@@ -94,8 +61,6 @@ const takeDamage = (playerList, attackerId, targetId, weapons) => {
 /* eslint no-unused-vars: off */
 // Validation functions
 const isAlive = (state, playerId) => (
-  // const { world: { playerList }} = state;
-  // const { hp } = playerList.find(p => p.playerId === playerId) || { hp: 0 };
   Map.isMap(state) && state.getIn(['world', 'playerList'])
     .find(p => p.get('playerId') === playerId)
     .get('hp') > 0
@@ -163,9 +128,10 @@ const isValidAction = (state, action) => {
 // Single Reducer
 const reducer = (state, action) => {
   if (!action) return state;
-  if (!isValidAction(fromJS(state), action)) return state;
+  if (!isValidAction(state, action)) return state;
 
-  const { world: { playerList }, available: { weapons }} = state;
+  const playerList = state.getIn(['world', 'playerList']);
+  const weapons = state.getIn(['available', 'weapons']);
   const {
     type,
     playerId,
@@ -176,37 +142,39 @@ const reducer = (state, action) => {
     winner
   } = action;
 
+  // TODO: DRY with lastAction merge
   switch(type) {
     case 'add player':
-      return changeWorld(
-        { ...state, lastAction: action },
-        { playerList: playerList.concat(refineAction(action)) }
-      );
+      return state.set('lastAction', Map(action))
+        .setIn(
+          ['world', 'playerList'],
+          playerList.push(Map(refineAction(action)))
+        );
 
     case 'move':
-      return changeWorld(
-        { ...state, lastAction: action },
-        { playerList: movePlayer(playerList, playerId, x, y) }
-      );
+      return state.set('lastAction', Map(action))
+        .setIn(
+          ['world', 'playerList'],
+          movePlayer(playerList, playerId, x, y)
+        );
 
     case 'change weapon':
-      return changeWorld(
-        { ...state, lastAction: action },
-        { playerList: changeWeapon(playerList, playerId, weapon) }
-      );
+      return state.set('lastAction', Map(action))
+        .setIn(
+          ['world', 'playerList'],
+          changeWeapon(playerList, playerId, weapon)
+        );
 
     case 'attack':
-      return changeWorld(
-        { ...state, lastAction: action },
-        { playerList: takeDamage(playerList, playerId, targetId, weapons) }
-      );
+      return state.set('lastAction', Map(action))
+        .setIn(
+          ['world', 'playerList'],
+          takeDamage(playerList, playerId, targetId, weapons)
+        );
 
     case 'game over':
-      return {
-        ...state,
-        winner,
-        lastAction: action
-      };
+      return state.set('lastAction', Map(action))
+        .set('winner', winner);
 
     default:
       return state;
@@ -298,7 +266,7 @@ const actionEmitter = (store, turns) => {
           actions.some(action => {
             store.dispatch(action);
 
-            const state = fromJS(store.getState());
+            const state = store.getState();
             const playerList = state.getIn(['world', 'playerList']);
             const alivePlayers = getAlivePlayers(playerList);
 
@@ -324,12 +292,11 @@ const actionEmitter = (store, turns) => {
 
 
 
-const store = createStore(reducer, defaultState);
+const store = createStore(reducer, fromJS(defaultState));
 // Subscribe to state changes
 const unsubscribe = store.subscribe(() => {
-  const state = fromJS(store.getState());
+  const state = store.getState();
 
   console.log(colorizeMsg(logger(state)));
 });
-
 actionEmitter(store, turns);
