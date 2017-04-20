@@ -5,12 +5,11 @@
 // Attach external modules
 import { List, Map, fromJS } from 'immutable';
 import { createStore } from 'redux';
-import { dumper } from 'dumper';
 
 import defaultState from './defaultState';
 import turns from './updates/listOfActions';
 
-const turnDelay = 100;
+const turnDelay = 1000;
 
 
 // Helper functions
@@ -152,7 +151,6 @@ const reducer = (state, action) => {
 
   const stateWithAction = state.set('lastAction', Map(action));
 
-  // TODO: DRY with lastAction merge
   switch(type) {
     case 'add player':
       return stateWithAction.setIn(
@@ -298,10 +296,12 @@ const actionEmitter = (store, turns) => {
 
 
 const store = createStore(reducer, fromJS(defaultState));
+
 // Subscribe to state changes
 const unsubscribe = store.subscribe(() => {
   const state = store.getState();
 
   console.log(colorizeMsg(logger(state)));
 });
+
 actionEmitter(store, turns);
