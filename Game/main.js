@@ -10,7 +10,7 @@ import { dumper } from 'dumper';
 import defaultState from './defaultState';
 import turns from './updates/listOfActions';
 
-const turnDelay = 200;
+const turnDelay = 100;
 
 
 // Helper functions
@@ -24,10 +24,18 @@ const refineAction = action => (
     }, {})
 );
 
+const findPlayerIndex = (playerList, playerId) => (
+  playerList.findIndex(p => p.get('playerId') === playerId)
+);
+
+const findPlayer = (playerList, playerId) => (
+  playerList.find(p => p.get('playerId') === playerId)
+);
+
 // Get new playerList object with moved player
 const movePlayer = (playerList, playerId, x, y) => (
   playerList.mergeIn(
-    [playerList.findIndex(p => p.get('playerId') === playerId)],
+    [findPlayerIndex(playerList, playerId)],
     { x, y }
   )
 );
@@ -35,23 +43,23 @@ const movePlayer = (playerList, playerId, x, y) => (
 // Get new playerList object with weapon change for a given player
 const changeWeapon = (playerList, playerId, weapon) => (
   playerList.mergeIn(
-    [playerList.findIndex(p => p.get('playerId') === playerId)],
+    [findPlayerIndex(playerList, playerId)],
     { weapon }
   )
 );
 
 // Get new playerList object with lowered hp for a given player
 const takeDamage = (playerList, attackerId, targetId, weapons) => {
-  const hp = playerList.find(p => p.get('playerId') === targetId)
-    .get('hp');
+  const targetIndex = findPlayerIndex(playerList, targetId);
 
-  const weapon = playerList.find(p => p.get('playerId') === attackerId)
-    .get('weapon');
+  const hp = playerList.getIn([targetIndex, 'hp']);
+
+  const weapon = findPlayer(playerList, attackerId).get('weapon');
 
   const damage = weapons.find(w => w.get('name') === weapon).get('damage');
 
   return playerList.mergeIn(
-    [playerList.findIndex(t => t.get('playerId') === targetId)],
+    [targetIndex],
     { hp: hp - damage }
   );
 };
@@ -142,39 +150,36 @@ const reducer = (state, action) => {
     winner
   } = action;
 
+  const stateWithAction = state.set('lastAction', Map(action));
+
   // TODO: DRY with lastAction merge
   switch(type) {
     case 'add player':
-      return state.set('lastAction', Map(action))
-        .setIn(
-          ['world', 'playerList'],
-          playerList.push(Map(refineAction(action)))
-        );
+      return stateWithAction.setIn(
+        ['world', 'playerList'],
+        playerList.push(Map(refineAction(action)))
+      );
 
     case 'move':
-      return state.set('lastAction', Map(action))
-        .setIn(
-          ['world', 'playerList'],
-          movePlayer(playerList, playerId, x, y)
-        );
+      return stateWithAction.setIn(
+        ['world', 'playerList'],
+        movePlayer(playerList, playerId, x, y)
+      );
 
     case 'change weapon':
-      return state.set('lastAction', Map(action))
-        .setIn(
-          ['world', 'playerList'],
-          changeWeapon(playerList, playerId, weapon)
-        );
+      return stateWithAction.setIn(
+        ['world', 'playerList'],
+        changeWeapon(playerList, playerId, weapon)
+      );
 
     case 'attack':
-      return state.set('lastAction', Map(action))
-        .setIn(
-          ['world', 'playerList'],
-          takeDamage(playerList, playerId, targetId, weapons)
-        );
+      return stateWithAction.setIn(
+        ['world', 'playerList'],
+        takeDamage(playerList, playerId, targetId, weapons)
+      );
 
     case 'game over':
-      return state.set('lastAction', Map(action))
-        .set('winner', winner);
+      return stateWithAction.set('winner', winner);
 
     default:
       return state;
